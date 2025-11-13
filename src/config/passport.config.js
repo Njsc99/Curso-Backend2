@@ -1,0 +1,124 @@
+import passport from "passport";
+import GitHubStrategy from "passport-github2";
+import local from "passport-local";
+import userService from "../models/user.model.js";
+import { createHash, isValidPassword } from "../utils.js";
+import jwt from "passport-jwt";
+
+const LocalStrategy = local.Strategy; // ✅ Define LocalStrategy
+const JWTStrategy = jwt.Strategy;
+const ExtractJWT = jwt.ExtractJwt;
+
+const cookieExtractor = (req) => {
+    let token = null;
+    // ✅ Intenta extraer de varias fuentes
+    if (req && req.cookies) {
+        token = req.cookies['token']; // desde cookie
+    } else if (req && req.headers && req.headers.authorization) {
+        // desde header Authorization: Bearer <token>
+        const parts = req.headers.authorization.split(' ');
+        if (parts.length === 2 && parts[0] === 'Bearer') {
+            token = parts[1];
+        }
+    }
+    return token;
+};
+
+const initializePassport = () => {
+
+    passport.use("jwt", new JWTStrategy({
+        jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
+        secretOrKey: "coderSecret",
+    }, async (jwt_payload, done) => {
+        try {
+            return done(null, jwt_payload);
+        } catch (error) {
+            return done(error);
+        }
+    }));
+
+    passport.serializeUser((user, done) => {
+        done(null, user._id);
+    });
+
+    passport.deserializeUser(async (id, done) => {
+        let user = await userService.findById(id);
+        done(null, user);
+    });
+
+    // Middleware de login
+    passport.use("login", new LocalStrategy({ usernameField: "email" }, async (username, password, done) => {
+        try {
+            const user = await userService.findOne({ email: username });
+            if (!user) {
+                console.log("Usuario no encontrado");
+                return done(null, false);
+            }
+            if (!isValidPassword(user, password)) return done(null, false);
+            return done(null, user);
+        } catch (error) {
+            return done(error);
+        }
+    }));
+
+    // ✅ Estrategia de registro
+    passport.use("register", new LocalStrategy(
+        { passReqToCallback: true, usernameField: "email" },
+        async (req, username, password, done) => {
+            try {
+                const { first_name, last_name, age } = req.body;
+                let user = await userService.findOne({ email: username });
+                if (user) {
+                    console.log("Usuario ya existe");
+                    return done(null, false);
+                }
+                const newUser = {
+                    first_name,
+                    last_name,
+                    email: username,
+                    age,
+                    password: createHash(password)
+                };
+                let result = await userService.create(newUser);
+                return done(null, result);
+            } catch (error) {
+                return done(error);
+            }
+        }
+    ));
+
+    // Estrategia GitHub
+    passport.use("github", new GitHubStrategy({
+        clientID: "Ov23liLsl6QXZWU5WY2x",
+        clientSecret: "851707a16c4198b64fa897baff12fa83212efe4e",
+        callbackURL: "http://localhost:8080/api/sessions/github/callback",
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
+            console.log(profile);
+            // ✅ Usa el email de GitHub o crea uno basado en el username
+            const email = profile._json.email || `${profile.username}@github.com`;
+            
+            let user = await userService.findOne({ email });
+            
+            if (!user) {
+                const newUser = {
+                    first_name: profile._json.name || profile.username, // ✅ usa username si no hay name
+                    last_name: "", // ✅ campo vacío pero presente
+                    email: email,
+                    age: 18, // ✅ valor por defecto
+                    password: "", // ✅ sin contraseña para usuarios de GitHub
+                };
+                let result = await userService.create(newUser);
+                return done(null, result);
+            } else {
+                return done(null, user);
+            }
+        } catch (error) {
+            console.error("Error en GitHub Strategy:", error);
+            return done(error);
+        }
+    }));
+
+};
+
+export default initializePassport;

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Login</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <form action="/api/sessions/login" method="POST">
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Iniciar Sesión</button>
+    </form>
+    <p>¿No tienes cuenta? <a href="/register">Regístrate</a></p>
+    <p>O inicia sesión con <a href="/api/sessions/github">GitHub</a></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!-- filepath: c:\Users\nsaez\Desktop\Backend2\src\views\current.handlebars -->
+<div class="container">
+    <h1>Usuario Actual</h1>
+    {{#if user}}
+        <div class="user-info">
+            <p><strong>ID:</strong> {{user.id}}</p>
+            <p><strong>Email:</strong> {{user.email}}</p>
+            <p><strong>Rol:</strong> {{user.role}}</p>
+            <p><strong>Nombre:</strong> {{user.first_name}} {{user.last_name}}</p>
+        </div>
+        <!-- ✅ Usa formulario con POST -->
+        <form action="/api/sessions/logout" method="POST">
+            <button type="submit">Cerrar sesión</button>
+        </form>
+    {{else}}
+        <p>No hay usuario autenticado</p>
+        <a href="/login">Iniciar sesión</a>
+    {{/if}}
+</div>
