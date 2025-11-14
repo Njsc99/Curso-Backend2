@@ -2,20 +2,19 @@ import passport from "passport";
 import GitHubStrategy from "passport-github2";
 import local from "passport-local";
 import userService from "../models/user.model.js";
+import cartModel from "../models/cart.model.js";
 import { createHash, isValidPassword } from "../utils.js";
 import jwt from "passport-jwt";
 
-const LocalStrategy = local.Strategy; // ✅ Define LocalStrategy
+const LocalStrategy = local.Strategy;
 const JWTStrategy = jwt.Strategy;
 const ExtractJWT = jwt.ExtractJwt;
 
 const cookieExtractor = (req) => {
     let token = null;
-    // ✅ Intenta extraer de varias fuentes
     if (req && req.cookies) {
-        token = req.cookies['token']; // desde cookie
+        token = req.cookies['token'];
     } else if (req && req.headers && req.headers.authorization) {
-        // desde header Authorization: Bearer <token>
         const parts = req.headers.authorization.split(' ');
         if (parts.length === 2 && parts[0] === 'Bearer') {
             token = parts[1];
@@ -61,7 +60,7 @@ const initializePassport = () => {
         }
     }));
 
-    // ✅ Estrategia de registro
+    // Estrategia de registro
     passport.use("register", new LocalStrategy(
         { passReqToCallback: true, usernameField: "email" },
         async (req, username, password, done) => {
@@ -72,12 +71,18 @@ const initializePassport = () => {
                     console.log("Usuario ya existe");
                     return done(null, false);
                 }
+                
+                // Crear carrito vacío para el nuevo usuario
+                const newCart = await cartModel.create({ products: [] });
+                
                 const newUser = {
                     first_name,
                     last_name,
                     email: username,
                     age,
-                    password: createHash(password)
+                    password: createHash(password),
+                    cart: newCart._id,
+                    role: 'user'
                 };
                 let result = await userService.create(newUser);
                 return done(null, result);
@@ -95,18 +100,22 @@ const initializePassport = () => {
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             console.log(profile);
-            // ✅ Usa el email de GitHub o crea uno basado en el username
             const email = profile._json.email || `${profile.username}@github.com`;
             
             let user = await userService.findOne({ email });
             
             if (!user) {
+                // Crear carrito para usuarios de GitHub
+                const newCart = await cartModel.create({ products: [] });
+                
                 const newUser = {
-                    first_name: profile._json.name || profile.username, // ✅ usa username si no hay name
-                    last_name: "", // ✅ campo vacío pero presente
+                    first_name: profile._json.name || profile.username,
+                    last_name: "",
                     email: email,
-                    age: 18, // ✅ valor por defecto
-                    password: "", // ✅ sin contraseña para usuarios de GitHub
+                    age: 18,
+                    password: "",
+                    cart: newCart._id,
+                    role: 'user'
                 };
                 let result = await userService.create(newUser);
                 return done(null, result);

@@ -19,24 +19,23 @@ const userSchema = new mongoose.Schema({
     },
     age: { 
         type: Number, 
-        default: 18
+        required: true
     },
     password: { 
         type: String, 
         required: false,
         default: ""
     },
+    cart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'carts'
+    },
     role: {
         type: String,
         default: 'user'
-    },
-    provider: {
-        type: String,
-        default: 'local'
     }
 }, { timestamps: true });
 
-// ✅ Define y exporta el modelo
 const userModel = mongoose.model(userCollection, userSchema);
 
 export default userModel;

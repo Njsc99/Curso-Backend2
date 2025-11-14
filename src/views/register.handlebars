@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Registro</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Registro</h1>
+    {{#if error}}
+    <p style="color: red;">Error: El usuario ya existe o hay un problema con los datos.</p>
+    {{/if}}
+    <form action="/register" method="POST">
+        <div>
+            <label for="first_name">Nombre:</label>
+            <input type="text" id="first_name" name="first_name" required>
+        </div>
+        <div>
+            <label for="last_name">Apellido:</label>
+            <input type="text" id="last_name" name="last_name" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div>
+            <label for="age">Edad:</label>
+            <input type="number" id="age" name="age" min="1" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Registrarse</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+  </div>
+</body>
+</html>
