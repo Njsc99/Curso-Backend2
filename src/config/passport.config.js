@@ -5,6 +5,9 @@ import userService from "../models/user.model.js";
 import cartModel from "../models/cart.model.js";
 import { createHash, isValidPassword } from "../utils.js";
 import jwt from "passport-jwt";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const LocalStrategy = local.Strategy;
 const JWTStrategy = jwt.Strategy;
@@ -27,7 +30,7 @@ const initializePassport = () => {
 
     passport.use("jwt", new JWTStrategy({
         jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
-        secretOrKey: "coderSecret",
+        secretOrKey: process.env.JWT_SECRET || "coderSecret",
     }, async (jwt_payload, done) => {
         try {
             return done(null, jwt_payload);
@@ -94,8 +97,8 @@ const initializePassport = () => {
 
     // Estrategia GitHub
     passport.use("github", new GitHubStrategy({
-        clientID: "Ov23liLsl6QXZWU5WY2x",
-        clientSecret: "851707a16c4198b64fa897baff12fa83212efe4e",
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
         callbackURL: "http://localhost:8080/api/sessions/github/callback",
     }, async (accessToken, refreshToken, profile, done) => {
         try {

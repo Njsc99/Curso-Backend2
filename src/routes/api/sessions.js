@@ -2,6 +2,9 @@ import { Router } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import { passportCall } from '../../utils.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = Router();
 
@@ -18,7 +21,6 @@ router.get('/failregister', (req, res) => {
 router.post('/login',
   passport.authenticate('login', { failureRedirect: '/api/sessions/faillogin' }),
   (req, res) => {
-    // Genera el token
     let token = jwt.sign(
         { 
             id: req.user._id, 
@@ -27,7 +29,7 @@ router.post('/login',
             first_name: req.user.first_name,
             last_name: req.user.last_name
         }, 
-        'coderSecret', 
+        process.env.JWT_SECRET || 'coderSecret', 
         { expiresIn: '2h' }
     );
     
@@ -36,7 +38,7 @@ router.post('/login',
     
     res.cookie('token', token, { 
         httpOnly: true, 
-        maxAge: 2 * 60 * 60 * 1000 // 2 horas
+        maxAge: 2 * 60 * 60 * 1000
     });
     
     if (req.accepts('html')) {
@@ -79,13 +81,11 @@ router.get('/logout', (req, res) => {
     });
 });
 
-// GitHub OAuth
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 router.get('/github/callback', 
     passport.authenticate('github', { failureRedirect: '/login' }), 
     (req, res) => {
-        // Genera token JWT para usuario de GitHub
         let token = jwt.sign(
             { 
                 id: req.user._id, 
@@ -94,13 +94,12 @@ router.get('/github/callback',
                 first_name: req.user.first_name,
                 last_name: req.user.last_name
             }, 
-            'coderSecret', 
+            process.env.JWT_SECRET || 'coderSecret', 
             { expiresIn: '2h' }
         );
         
         req.session.user = req.user;
         
-        // Envía token como cookie
         res.cookie('token', token, { 
             httpOnly: true, 
             maxAge: 2 * 60 * 60 * 1000

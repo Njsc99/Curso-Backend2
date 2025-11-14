@@ -2,6 +2,9 @@ import { Router } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import { passportCall } from '../utils.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = Router();
 
@@ -38,7 +41,7 @@ router.post('/register',
                     first_name: req.user.first_name,
                     last_name: req.user.last_name
                 }, 
-                'coderSecret', 
+                process.env.JWT_SECRET || 'coderSecret', 
                 { expiresIn: '2h' }
             );
             
@@ -76,7 +79,7 @@ router.post('/login',
                     first_name: req.user.first_name,
                     last_name: req.user.last_name
                 }, 
-                'coderSecret', 
+                process.env.JWT_SECRET || 'coderSecret', 
                 { expiresIn: '2h' }
             );
             
