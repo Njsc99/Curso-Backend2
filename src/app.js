@@ -7,6 +7,8 @@ import { engine } from 'express-handlebars';
 import mongoose from "mongoose";
 
 import sessionsRouter from "./routes/api/sessions.js";
+import productsRouter from "./routes/api/products.js";
+import cartsRouter from "./routes/api/carts.js";
 import viewsRouter from "./routes/views.js";
 import initializePassport from "./config/passport.config.js";
 import { __dirname } from "./utils.js";
@@ -42,5 +44,7 @@ app.use(passport.session());
 // Rutas
 app.use('/', viewsRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
 
 export default app;

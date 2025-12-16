@@ -119,4 +119,17 @@ router.get('/current', passportCall('jwt'), (req, res) => {
     });
 });
 
+router.get('/forgot-password', (req, res) => {
+    res.render('forgot-password', { 
+        title: 'Recuperar Contraseña'
+    });
+});
+
+router.get('/reset-password/:token', (req, res) => {
+    res.render('reset-password', { 
+        title: 'Restablecer Contraseña',
+        token: req.params.token
+    });
+});
+
 export default router;

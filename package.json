@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node --watch src/server.js"
+    "start": "node --watch src/server.js",
+    "seed": "node src/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -21,10 +22,12 @@
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
+    "nodemailer": "^6.9.7",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "uuid": "^9.0.1",
     "y": "^0.3.2"
   }
 }

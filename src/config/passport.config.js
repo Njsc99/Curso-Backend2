@@ -1,9 +1,9 @@
 import passport from "passport";
 import GitHubStrategy from "passport-github2";
 import local from "passport-local";
-import userService from "../models/user.model.js";
-import cartModel from "../models/cart.model.js";
-import { createHash, isValidPassword } from "../utils.js";
+import UserRepository from "../repositories/user.repository.js";
+import CartRepository from "../repositories/cart.repository.js";
+import { isValidPassword } from "../utils.js";
 import jwt from "passport-jwt";
 import dotenv from "dotenv";
 
@@ -44,14 +44,14 @@ const initializePassport = () => {
     });
 
     passport.deserializeUser(async (id, done) => {
-        let user = await userService.findById(id);
+        let user = await UserRepository.getUserById(id);
         done(null, user);
     });
 
     // Middleware de login
     passport.use("login", new LocalStrategy({ usernameField: "email" }, async (username, password, done) => {
         try {
-            const user = await userService.findOne({ email: username });
+            const user = await UserRepository.getUserByEmail(username);
             if (!user) {
                 console.log("Usuario no encontrado");
                 return done(null, false);
@@ -69,25 +69,25 @@ const initializePassport = () => {
         async (req, username, password, done) => {
             try {
                 const { first_name, last_name, age } = req.body;
-                let user = await userService.findOne({ email: username });
+                let user = await UserRepository.getUserByEmail(username);
                 if (user) {
                     console.log("Usuario ya existe");
                     return done(null, false);
                 }
                 
                 // Crear carrito vacío para el nuevo usuario
-                const newCart = await cartModel.create({ products: [] });
+                const newCart = await CartRepository.createCart();
                 
                 const newUser = {
                     first_name,
                     last_name,
                     email: username,
                     age,
-                    password: createHash(password),
+                    password,
                     cart: newCart._id,
                     role: 'user'
                 };
-                let result = await userService.create(newUser);
+                let result = await UserRepository.createUser(newUser);
                 return done(null, result);
             } catch (error) {
                 return done(error);
@@ -105,11 +105,11 @@ const initializePassport = () => {
             console.log(profile);
             const email = profile._json.email || `${profile.username}@github.com`;
             
-            let user = await userService.findOne({ email });
+            let user = await UserRepository.getUserByEmail(email);
             
             if (!user) {
                 // Crear carrito para usuarios de GitHub
-                const newCart = await cartModel.create({ products: [] });
+                const newCart = await CartRepository.createCart();
                 
                 const newUser = {
                     first_name: profile._json.name || profile.username,
@@ -120,7 +120,7 @@ const initializePassport = () => {
                     cart: newCart._id,
                     role: 'user'
                 };
-                let result = await userService.create(newUser);
+                let result = await UserRepository.createUser(newUser);
                 return done(null, result);
             } else {
                 return done(null, user);
